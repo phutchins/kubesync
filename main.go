@@ -3,18 +3,33 @@ package main
 import (
 //  "os"
   "fmt"
-  "path/filepath"
-  "github.com/spf13/cobra"
+//  "errors"
+//  "path/filepath"
+//  "github.com/spf13/cobra"
+  "github.com/phutchins/kubesync/cmd"
 )
 
-var (
-  rootCmd = &cobra.Command{
-    Use: "kubesync",
-    Short: "Sync manifests for Kubernetes",
-  }
-
-  defaultConfDir = "$HOME/.kubesync"
-)
+//var (
+//  rootCmd = &cobra.Command{
+//    Use: "kubesync",
+//    Short: "Sync manifests for Kubernetes",
+//	  Args: func(cmd *cobra.Command, args []string) error {
+//	    if len(args) < 1 {
+//	      return errors.New("requires at least one arg")
+//	    }
+//	    //if myapp.IsValidColor(args[0]) {
+//	    //  return nil
+//	    //}
+//	    //return fmt.Errorf("invalid color specified: %s", args[0])
+//      return nil
+//	  },
+//	  Run: func(cmd *cobra.Command, args []string) {
+//	    fmt.Println("Hello, World!")
+//	  },
+//  }
+//
+//  defaultConfDir = "$HOME/.kubesync"
+//)
 
 func main() {
   fmt.Sprintf("Starting...")
@@ -33,9 +48,9 @@ func main() {
   //fmt.Println(argsWithoutProg)
   //fmt.Println(arg)
 
-  syncCmd.Flags().String("config",
-    filepath.Join(defaultConfDir, "config"), "path to configuration")
-  deployCmd.Flags().String("config",
-    filepath.Join(defaultConfDir, "config"), "path to configuration")
-  rootCmd.Execute()
+//  cmd.syncCmd.Flags().String("config",
+//    filepath.Join(defaultConfDir, "config"), "path to configuration")
+//  cmd.deployCmd.Flags().String("config",
+//    filepath.Join(defaultConfDir, "config"), "path to configuration")
+  cmd.Execute()
 }
