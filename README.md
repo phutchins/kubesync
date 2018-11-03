@@ -10,3 +10,5 @@ KubeSync is a tool which...
 * Has the ability to pull all configuration files from Kubernetes and write them to disk
 * Has the ability to sync all files recursively from disk to Kubernetes
   * Can detect order needed to restore files such that everything works
+* When there are changes on both sides
+  * Present options for which changes to keep
