@@ -28,6 +28,16 @@ Kubernetes bi-directional sync utility providing the following
 ### CONFIGURE
 
 ### ENV
+#### Sub Commands
+  * (empty) - Returns current config overview
+  * get
+  * set
+
+#### Params
+  * context
+  * namespace
+
+#### Examples
 * env context [context name] - Accept a new setting for context (non interactive)
 * env namespace [namespace]  - Accept a new setting for namespace (non interactive)
 
@@ -131,3 +141,7 @@ Separate what we're doing by what we're chainging in the resource?
 * Env - Would only change environment variables
 * Configure - Would change other configuration?
 * Scale - Would scale the deployment up or down
+
+## TODO
+* Make viper read env variables to override config values
+  * https://scene-si.org/2017/04/20/managing-configuration-with-viper/

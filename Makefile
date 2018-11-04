@@ -36,4 +36,9 @@ test: ## Run tests
 .PHONY: build
 build: ## Build binaries
 	mkdir -p builds
+	go build -o builds/kubesync .
+
+.PHONY: build-label
+build-label: ## Build binaries
+	mkdir -p builds
 	go build -o builds/kubesync-${TAG}${FILEEXT} .
