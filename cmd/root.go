@@ -26,30 +26,39 @@ func init() {
 }
 
 func initConfig() {
-	viper.SetConfigType("yaml")
+  viper.SetConfigType("yaml")
 
-	if cfgFile != "" {
-		fmt.Println("Setting config file to", cfgFile)
-		viper.SetConfigFile(cfgFile)
-	} else {
-		home, err := homedir.Dir()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
+  // Set ENV prefix and load ENV variables
+  viper.SetEnvPrefix("ks")
+  viper.BindEnv("env")
 
-		viper.AddConfigPath(home)
-		//viper.AddConfigPath(".")
-		//viper.AddConfigPath("$HOME/")
-		viper.SetConfigFile("/Users/philip/.kubesync")
-		//viper.SetConfigName(".kubesync")
-	}
-	if err := viper.ReadInConfig(); err != nil {
-		fmt.Println("Can't read config:", err)
-		os.Exit(1)
-	}
+  if cfgFile != "" {
+    fmt.Println("Setting config file to", cfgFile);
+    viper.SetConfigFile(cfgFile)
+  } else {
+    home, err := homedir.Dir()
+    if err != nil {
+      fmt.Println(err)
+      os.Exit(1)
+    }
 
-	fmt.Println("Config value of current-context is: ", viper.Get("current-context"))
+    fmt.Println("Home: ", home)
+
+    // Should find a way to load config file from configPaths without an extension
+    //viper.SetConfigName(".kubesync")
+    //viper.AddConfigPath("/Users/philip/")
+    //viper.AddConfigPath(home)
+    //viper.AddConfigPath(".")
+    //viper.AddConfigPath("$HOME/")
+    viper.SetConfigFile("/Users/philip/.kubesync")
+  }
+
+  if err := viper.ReadInConfig(); err != nil {
+    fmt.Println("Can't read config:", err)
+    os.Exit(1)
+  }
+
+  fmt.Println("Config value of current-context is: ", viper.Get("current-context"))
 }
 
 func Execute() {
