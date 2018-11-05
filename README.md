@@ -12,3 +12,4 @@ KubeSync is a tool which...
   * Can detect order needed to restore files such that everything works
 * When there are changes on both sides
   * Present options for which changes to keep
+  * When things exist that can't be resolved, ability to alert or notify
