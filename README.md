@@ -33,6 +33,8 @@ Kubernetes bi-directional sync utility providing the following
   * get
   * set
 
+This command should potentially also help manage environment settings when used outside of kubesync (i.e. you run kubesync env [context] [namespace] then run kubectl get pods, you would be using the context and namespace set by kubesync)
+
 #### Params
   * context
   * namespace
