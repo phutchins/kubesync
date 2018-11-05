@@ -81,40 +81,40 @@ $ kubesync push deployments
 
 # Roadmap
 ## V1
-* Pull a resource from Kube and save to file
-  * Sanatize file removing unneeded elements
-  * Sort (optional) for consistent/predictable files
-  * If no file exists
-    * Save it using default format
-  * If file exists
-    * Load the existing file
-    * Sanatize both files (file on disk should ideally already be sanatized)
-    * Sort both files
-    * Diff them
-    * Present diffs to user and wait for user to choose option
-      * Update local file
-      * Bail
-      * Selectively update local file
-* Push a resource to Kube
-  * Sanatize file removing unneeded elements
-  * Sort resource
-  * Pull remote version
-  * If it doesn't exist
-    * Just push it
-  * If it exists
-    * Load the remote resource
-    * Sanatize remote resource
-    * Sort remote resource
-    * Diff the two
-    * Present diffs to user and wait for user to choose option
-      * Update remote resource
-      * Bail
-      * Selectively update remote resource
-      * Aloow to sync remote to local for select elements?
+- [ ] Pull a resource from Kube and save to file
+  - [ ] Sanatize file removing unneeded elements
+  - [ ] Sort (optional) for consistent/predictable files
+  - [ ] If no file exists
+    - [ ] Save it using default format
+  - [ ] If file exists
+    - [ ] Load the existing file
+    - [ ] Sanatize both files (file on disk should ideally already be sanatized)
+    - [ ] Sort both files
+    - [ ] Diff them
+    - [ ] Present diffs to user and wait for user to choose option
+      - [ ] Update local file
+      - [ ] Bail
+      - [ ] Selectively update local file
+- [ ] Push a resource to Kube
+  - [ ] Sanatize file removing unneeded elements
+  - [ ] Sort resource
+  - [ ] Pull remote version
+  - [ ] If it doesn't exist
+    - [ ] Just push it
+  - [ ] If it exists
+    - [ ] Load the remote resource
+    - [ ] Sanatize remote resource
+    - [ ] Sort remote resource
+    - [ ] Diff the two
+    - [ ] Present diffs to user and wait for user to choose option
+      - [ ] Update remote resource
+      - [ ] Bail
+      - [ ] Selectively update remote resource
+      - [ ] Aloow to sync remote to local for select elements?
 
 ## V2
-* Add daemon functionality
-* Enable git syncing up/down
+- [ ] Add daemon functionality
+- [ ] Enable git syncing up/down
 
 # Notes
 
