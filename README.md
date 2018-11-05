@@ -8,14 +8,29 @@ Kubernetes bi-directional sync utility providing the following
 * Promotion of updated settings from one context/namespace to another (i.e. staging to production)
 * A daemon service which monitors local and remote keeping one in sync with the other or both
 
+# Example Usage
+I want to create a deployment, test it out in staging, then move it to production. It is a new one.
+```
+$ vi myDeploy.yaml
+(create deployment on disk)
+$ kubesync env nonprod staging               # You have set your context to nonprod and namespace to staging
+$ kubesync push deployment myDeploy[.yaml]   # Now your deployment is in staging
+$ echo "I've tested my deployment in staging and am ready to go to prod"
+$ kubesync promote deployment myDeploy nonprod/staging prod/prod
+$ echo "yay, I'm done and didn't break things!"
+$ echo "but wait, someone found a bug!"
+$ kubesync revert deployment myDeployment prod/prod
+```
 
 # Usage:
 ## Sub Commands
-* configure                  - Configure server settings and defaults writing them to file
+* configure                  - Configure server settings and defaults writing them to file (can set where promote goes from and to?)
 * env                        - Prompt the user for which context
 * pull                       - Pull a resource form Kubernetes to local file
 * push                       - Push a resource from local file to Kubernetes
 * deploy                     - Accept updated param via command line updating local resource as well as remote
+* promote                    - Promote a build from one environment/namespace to another (default is deployment?)
+* revert                     - Fall back to the last thing that was deployed
 * daemon                     - Run as a daemon (logs to to std out, potentially give -b option for built in background operation)
 
 ## Global Options
@@ -68,6 +83,15 @@ $ kubesync push deployments
 ```
 
 ### DEPLOY
+
+### PROMOTE
+Feature Ideas
+* Contextually determine what resource you're wanting to promote by $CWD
+* Configure the from and to through kubesync configure
+
+### REVERT
+
+### DAEMON
 
 # Configuration
 * Config File (default ~/.kubesync/config)
