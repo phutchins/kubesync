@@ -41,6 +41,12 @@ $ kubesync revert deployment myDeployment prod/prod
 
 ## Command Details
 ### CONFIGURE
+  * if config already exists
+    * Ask if the user wants to nuke the config and reconfigure (or maybe make them move it/remove it before it will do anything
+    * Tell them to individually set the items
+  * if no config exists
+    * Prompt for each setting
+    * Prompt where to write config and the name (default ~/.kubesync)
 
 ### ENV
 #### Sub Commands
@@ -172,3 +178,6 @@ Separate what we're doing by what we're chainging in the resource?
 ## TODO
 * Make viper read env variables to override config values
   * https://scene-si.org/2017/04/20/managing-configuration-with-viper/
+* Display help when no args are passed
+* Display help when no options are passed for a sub command
+* Create utils package and move `check for no args and display help` method to it`

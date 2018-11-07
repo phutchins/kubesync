@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	homedir "github.com/mitchellh/go-homedir"
+	//homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+  "github.com/phutchins/kubesync/pkg/config"
+  "github.com/phutchins/kubesync/pkg/kube"
 	"os"
 )
 
@@ -14,51 +15,20 @@ var rootCmd = &cobra.Command{
 	Long: `Kubesync provides convenience, safety and extra functionality around
                 managing your Kubernetes resources.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// Do Stuff Here
+    if len(args) == 0 {
+      cmd.Help()
+      os.Exit(0)
+    }
 	},
 }
 
 var cfgFile string
 
 func init() {
-	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.kubesync)")
-}
-
-func initConfig() {
-  viper.SetConfigType("yaml")
-
-  // Set ENV prefix and load ENV variables
-  viper.SetEnvPrefix("ks")
-  viper.BindEnv("env")
-
-  if cfgFile != "" {
-    fmt.Println("Setting config file to", cfgFile);
-    viper.SetConfigFile(cfgFile)
-  } else {
-    home, err := homedir.Dir()
-    if err != nil {
-      fmt.Println(err)
-      os.Exit(1)
-    }
-
-    fmt.Println("Home: ", home)
-
-    // Should find a way to load config file from configPaths without an extension
-    //viper.SetConfigName(".kubesync")
-    //viper.AddConfigPath("/Users/philip/")
-    //viper.AddConfigPath(home)
-    //viper.AddConfigPath(".")
-    //viper.AddConfigPath("$HOME/")
-    viper.SetConfigFile("/Users/philip/.kubesync")
-  }
-
-  if err := viper.ReadInConfig(); err != nil {
-    fmt.Println("Can't read config:", err)
-    os.Exit(1)
-  }
-
-  fmt.Println("Config value of current-context is: ", viper.Get("current-context"))
+  // Should be passing config file name override flag here
+	cobra.OnInitialize(config.InitConfig)
+  kube.LoadKubeConfig()
 }
 
 func Execute() {
