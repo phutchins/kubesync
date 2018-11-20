@@ -127,6 +127,7 @@ Feature Ideas
       - [ ] Update local file
       - [ ] Bail
       - [ ] Selectively update local file
+- [ ] Pull resources recursively (or multiple resources, all)
 - [ ] Push a resource to Kube
   - [ ] Sanatize file removing unneeded elements
   - [ ] Sort resource

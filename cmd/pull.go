@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"os"
+//	"os"
   "github.com/phutchins/kubesync/pkg/kube"
 )
 
@@ -24,15 +24,35 @@ func init() {
 func cmdPull(cmd *cobra.Command, args []string) (err error) {
   // If no args should we pull all?
   if len(args) == 0 {
-    cmd.Help()
-    os.Exit(0)
+    // GEt a list of all pods
+    // Get a single pod
+    // gotPods, err := kube.GetPods("*")
+
+    namespace := []string{"automation"}
+
+    list := kube.ListDeployments(namespace)
+
+    fmt.Printf("All deployments:", list)
+
+    return
   }
 
-  pods := []string{"openhab-59c7cc988c-zv25d"}
+  pullPod := args[0]
+
+  // Detect what we're pulling or if we're pulling everything
+
+  // Handle wildcards and recursive pull
+
+
+
+  fmt.Printf("Pulling pod %s", pullPod)
+
+  pods := []string{pullPod}
   gotPods, err := kube.GetPods(pods)
 
 	if err != nil {
-		panic(err.Error())
+    fmt.Printf("Error: %s", err)
+		//panic(err.Error())
 	}
 
 	fmt.Printf("There are %d pods in the cluster\n", len(gotPods.Items))
