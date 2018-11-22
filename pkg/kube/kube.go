@@ -43,17 +43,31 @@ func LoadKubeConfig() {
 
 }
 
-func ListDeployments(namespace []string) (*appsv1.DeploymentList) {
+func ListNamespaces() (*corev1.NamespaceList) {
+  namespaceList, _ := clientset.CoreV1().Namespaces().List(metav1.ListOptions{})
+
+  return namespaceList
+}
+
+func ListDeployments(namespace string) (appsv1.DeploymentList) {
   //LoadKubeConfig()
 
-  deploymentsClient := clientset.AppsV1().Deployments(corev1.NamespaceDefault)
+  //deploymentLists := make([]appsv1.DeploymentList, 0, 30)
 
-  deploymentList, getErr := deploymentsClient.List(metav1.ListOptions{})
-  if getErr != nil {
-    panic(fmt.Sprintf("Failed to get latest version of Deployment: %s", getErr))
-  }
+  //namespaces := []string{namespace}
 
-  return deploymentList
+  //for count, namespace := range namespaces {
+    deploymentsClient := clientset.AppsV1().Deployments(namespace)
+
+    deploymentList, getErr := deploymentsClient.List(metav1.ListOptions{})
+    if getErr != nil {
+      panic(fmt.Sprintf("Failed to get latest version of Deployment: %s", getErr))
+    }
+
+    //deploymentLists[count] = *deploymentList
+
+    return *deploymentList
+  //}
 }
 
 func GetPods(pods []string) (*corev1.PodList, error) {

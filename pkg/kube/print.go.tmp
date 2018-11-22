@@ -1,3 +1,0 @@
-package kube
-
-func printPods(pods *v1.
