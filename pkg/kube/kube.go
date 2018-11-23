@@ -49,7 +49,7 @@ func ListNamespaces() (*corev1.NamespaceList) {
   return namespaceList
 }
 
-func ListDeployments(namespace string) (appsv1.DeploymentList) {
+func ListDeployments(namespace string, deployments []string) (appsv1.DeploymentList) {
   //LoadKubeConfig()
 
   //deploymentLists := make([]appsv1.DeploymentList, 0, 30)

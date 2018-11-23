@@ -1,10 +1,11 @@
 package cmd
 
 import (
-	//"fmt"
+	"fmt"
 	"github.com/spf13/cobra"
-	//"os"
+	"os"
   "github.com/phutchins/kubesync/pkg/kube"
+  appsv1 "k8s.io/api/apps/v1"
   //corev1 "k8s.io/api/core/v1"
 
   // Use this for decoding yaml and jason files
@@ -12,13 +13,20 @@ import (
 )
 
 // pull without a destination will list resources that will be pulled
-
 var (
 	pullCmd = &cobra.Command{
 		Use:   "pull",
 		Short: "Pull resources from remote",
 		RunE:  cmdPull,
 	}
+)
+
+var (
+  pullDeploymentCmd = &cobra.Command{
+    Use:   "deployment",
+    Short: "Deployment resource",
+    RunE:  cmdPullDeployments,
+  }
 )
 
 var All bool
@@ -28,31 +36,22 @@ func init() {
 	rootCmd.AddCommand(pullCmd)
   rootCmd.PersistentFlags().BoolVarP(&All, "all", "a", false, "Apply to all of this resource")
   rootCmd.PersistentFlags().StringVarP(&Namespace, "namespace", "n", "default", "The namespace to query")
+
+  pullCmd.AddCommand(pullDeploymentCmd)
 }
 
 func cmdPull(cmd *cobra.Command, args []string) (err error) {
+  fmt.Println("Will pull all resources...")
+
+  return err
+}
+
+func cmdPullDeployments(cmd *cobra.Command, args []string) (err error) {
   var namespaceString string
 
-  // If no args should we pull all?
   if err != nil {
     panic(err.Error())
   }
-
-  //var namespaceString string
-  //var namespaces corev1.NamespaceList
-
-  // If no namespace specified, list from all
-  //if len(args) == 0 {
-    // Add a -a option to list all namespaces
-    // Default to default namespace
-
-    // Create Namespace list from this string?
-  //  namespaceString = ""
-  //} else {
-    // Should be type namespacesList ?
-    //namespaces = kube.ListNamespaces()
-    //namespaceString = args[0]
-  //}
 
   if All == true {
     namespaceString = ""
@@ -60,29 +59,36 @@ func cmdPull(cmd *cobra.Command, args []string) (err error) {
     namespaceString = Namespace
   }
 
-  deploymentList := kube.ListDeployments(namespaceString)
+  deploymentStrings := args
 
-  //for _, deploymentList := range deploymentLists {
-    kube.PrintDeployments(deploymentList)
-  //}
+  err, deploymentList := PullDeployments(namespaceString, deploymentStrings)
 
-  /*
-  pullPod := args[0]
+  if err != nil {
+    fmt.Println(err)
+    os.Exit(1)
+  }
 
-  // Detect what we're pulling or if we're pulling everything
+  kube.PrintDeployments(deploymentList)
 
+  return err
+}
+
+// Make this a sub command of pull which will pull deployments
+func PullDeployments(namespaceString string, deploymentStrings []string) (err error, deploymentList appsv1.DeploymentList) {
+
+  deploymentList = kube.ListDeployments(namespaceString, deploymentStrings)
+
+  return err, deploymentList
+}
+
+func PullPods (ns *string, podStrings *[]string) (err error) {
   // Handle wildcards and recursive pull
 
-
-
-  fmt.Printf("Pulling pod %s", pullPod)
-
-  pods := []string{pullPod}
-  gotPods, err := kube.GetPods(pods)
+  gotPods, err := kube.GetPods(*podStrings)
 
 	if err != nil {
     fmt.Printf("Error: %s", err)
-		//panic(err.Error())
+		panic(err.Error())
 	}
 
 	fmt.Printf("There are %d pods in the cluster\n", len(gotPods.Items))
@@ -105,3 +111,5 @@ func cmdPull(cmd *cobra.Command, args []string) (err error) {
   */
   return err
 }
+
+
