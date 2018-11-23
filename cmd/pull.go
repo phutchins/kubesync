@@ -29,6 +29,14 @@ var (
   }
 )
 
+var (
+  pullPodCmd = &cobra.Command{
+    Use:  "pod",
+    Short: "Pod resource",
+    RunE: cmdPullPods,
+  }
+)
+
 var All bool
 var Namespace string
 
@@ -38,6 +46,7 @@ func init() {
   rootCmd.PersistentFlags().StringVarP(&Namespace, "namespace", "n", "default", "The namespace to query")
 
   pullCmd.AddCommand(pullDeploymentCmd)
+  pullCmd.AddCommand(pullPodCmd)
 }
 
 func cmdPull(cmd *cobra.Command, args []string) (err error) {
@@ -73,6 +82,12 @@ func cmdPullDeployments(cmd *cobra.Command, args []string) (err error) {
   return err
 }
 
+func cmdPullPods(cmd *cobra.Command, args []string) (err error) {
+  err = PullPods(&Namespace, &args)
+
+  return err
+}
+
 // Make this a sub command of pull which will pull deployments
 func PullDeployments(namespaceString string, deploymentStrings []string) (err error, deploymentList appsv1.DeploymentList) {
 
@@ -88,7 +103,7 @@ func PullPods (ns *string, podStrings *[]string) (err error) {
 
 	if err != nil {
     fmt.Printf("Error: %s", err)
-		panic(err.Error())
+    os.Exit(1)
 	}
 
 	fmt.Printf("There are %d pods in the cluster\n", len(gotPods.Items))

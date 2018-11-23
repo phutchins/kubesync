@@ -75,9 +75,6 @@ func GetPods(pods []string) (*corev1.PodList, error) {
   var errStr string
 
   foundPods, err := clientset.CoreV1().Pods("").List(metav1.ListOptions{})
-  if err != nil {
-    panic(err.Error())
-  }
 
   // Examples for error handling:
   // - Use helper functions like e.g. kubeErrors.IsNotFound()
@@ -91,8 +88,7 @@ func GetPods(pods []string) (*corev1.PodList, error) {
   } else if err != nil {
     panic(err.Error())
   } else {
-    //errStr = fmt.Sprintf("Found pod %s in namespace %s\n", pods[0], conf.Namespace)
-
+    errStr = fmt.Sprintf("Found pod %s in namespace %s\n", pods[0], conf.Namespace)
   }
 
   // Need to be returning nill for kubeErr if no error is returned
