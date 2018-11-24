@@ -30,9 +30,25 @@ var (
 )
 
 var (
+  pullDeploymentsCmd = &cobra.Command{
+    Use:   "deployments",
+    Short: "Deployments resource",
+    RunE:  cmdPullDeployments,
+  }
+)
+
+var (
   pullPodCmd = &cobra.Command{
     Use:  "pod",
     Short: "Pod resource",
+    RunE: cmdPullPods,
+  }
+)
+
+var (
+  pullPodsCmd = &cobra.Command{
+    Use:  "pods",
+    Short: "Pods resource",
     RunE: cmdPullPods,
   }
 )
@@ -42,11 +58,13 @@ var Namespace string
 
 func init() {
 	rootCmd.AddCommand(pullCmd)
-  rootCmd.PersistentFlags().BoolVarP(&All, "all", "a", false, "Apply to all of this resource")
+  rootCmd.PersistentFlags().BoolVarP(&All, "all", "a", false, "Query all namespaces")
   rootCmd.PersistentFlags().StringVarP(&Namespace, "namespace", "n", "default", "The namespace to query")
 
   pullCmd.AddCommand(pullDeploymentCmd)
+  pullCmd.AddCommand(pullDeploymentsCmd)
   pullCmd.AddCommand(pullPodCmd)
+  pullCmd.AddCommand(pullPodsCmd)
 }
 
 func cmdPull(cmd *cobra.Command, args []string) (err error) {
@@ -98,15 +116,16 @@ func PullDeployments(namespaceString string, deploymentStrings []string) (err er
 
 func PullPods (ns *string, podStrings *[]string) (err error) {
   // Handle wildcards and recursive pull
-
-  gotPods, err := kube.GetPods(*podStrings)
+  gotPods, err := kube.GetPods(*ns, *podStrings)
 
 	if err != nil {
-    fmt.Printf("Error: %s", err)
+    fmt.Printf("Error: %s\n", err)
     os.Exit(1)
 	}
 
 	fmt.Printf("There are %d pods in the cluster\n", len(gotPods.Items))
+
+  kube.PrintPods(*gotPods)
 
 	// Examples for error handling:
 	// - Use helper functions like e.g. errors.IsNotFound()

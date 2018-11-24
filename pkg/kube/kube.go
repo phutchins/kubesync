@@ -70,29 +70,46 @@ func ListDeployments(namespace string, deployments []string) (appsv1.DeploymentL
   //}
 }
 
-func GetPods(pods []string) (*corev1.PodList, error) {
+func GetPods(ns string, pods []string) (foundPods *corev1.PodList, err error) {
   conf := config.GetConf()
   var errStr string
+  err = nil
+  foundPods = &corev1.PodList{ListMeta: metav1.ListMeta{ResourceVersion: "0"}}
 
-  foundPods, err := clientset.CoreV1().Pods("").List(metav1.ListOptions{})
+  if len(pods) == 0 {
+    foundPods, err = clientset.CoreV1().Pods(ns).List(metav1.ListOptions{})
 
-  // Examples for error handling:
-  // - Use helper functions like e.g. kubeErrors.IsNotFound()
-  // - And/or cast to StatusError and use its properties like e.g. ErrStatus.Message
-  _, err = clientset.CoreV1().Pods(conf.Namespace).Get(pods[0], metav1.GetOptions{})
-  if kubeErrors.IsNotFound(err) {
-    errStr = fmt.Sprintf("Pod %s in namespace %s not found\n", pods[0], conf.Namespace)
-  } else if statusError, isStatus := err.(*kubeErrors.StatusError); isStatus {
-    errStr = fmt.Sprintf("Error getting pod %s in namespace %s: %v\n",
-      pods[0], conf.Namespace, statusError.ErrStatus.Message)
-  } else if err != nil {
-    panic(err.Error())
+    podCount := len(foundPods.Items)
+    fmt.Printf("foundPods.Items length is %d\n", podCount)
   } else {
-    errStr = fmt.Sprintf("Found pod %s in namespace %s\n", pods[0], conf.Namespace)
+    for index, pod := range pods {
+      fmt.Printf("Getting pod %s from index %d\n", pod, index)
+      // Examples for error handling:
+      // - Use helper functions like e.g. kubeErrors.IsNotFound()
+      // - And/or cast to StatusError and use its properties like e.g. ErrStatus.Message
+      foundPod, err := clientset.CoreV1().Pods(ns).Get(pod, metav1.GetOptions{})
+      if kubeErrors.IsNotFound(err) {
+        errStr = fmt.Sprintf("Pod %s in namespace %s not found\n", pod, conf.Namespace)
+      } else if statusError, isStatus := err.(*kubeErrors.StatusError); isStatus {
+        errStr = fmt.Sprintf("Error getting pod %s in namespace %s: %v\n",
+          pod, conf.Namespace, statusError.ErrStatus.Message)
+      } else if err != nil {
+        panic(err.Error())
+      } else {
+        //errStr = fmt.Sprintf("Found pod %s in namespace %s\n", pods, conf.Namespace)
+
+        foundPods.Items = append(foundPods.Items, *foundPod)
+
+        // Add pod to podList somehow
+      }
+    }
   }
 
   // Need to be returning nill for kubeErr if no error is returned
-  kubeErr := errors.New(errStr)
+  var kubeErr error
+  if errStr != "" {
+    kubeErr = errors.New(errStr)
+  }
 
   return foundPods, kubeErr
 }
