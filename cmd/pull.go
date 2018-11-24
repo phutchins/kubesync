@@ -76,10 +76,6 @@ func cmdPull(cmd *cobra.Command, args []string) (err error) {
 func cmdPullDeployments(cmd *cobra.Command, args []string) (err error) {
   var namespaceString string
 
-  if err != nil {
-    panic(err.Error())
-  }
-
   if All == true {
     namespaceString = ""
   } else {
@@ -101,7 +97,15 @@ func cmdPullDeployments(cmd *cobra.Command, args []string) (err error) {
 }
 
 func cmdPullPods(cmd *cobra.Command, args []string) (err error) {
-  err = PullPods(&Namespace, &args)
+  var namespaceString string
+
+  if All == true {
+    namespaceString = ""
+  } else {
+    namespaceString = Namespace
+  }
+
+  err = PullPods(&namespaceString, &args)
 
   return err
 }

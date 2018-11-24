@@ -71,23 +71,22 @@ func ListDeployments(namespace string, deployments []string) (appsv1.DeploymentL
 }
 
 func GetPods(ns string, pods []string) (foundPods *corev1.PodList, err error) {
-  conf := config.GetConf()
   var errStr string
+  var kubeErr error
+
+  conf := config.GetConf()
   err = nil
+
   foundPods = &corev1.PodList{ListMeta: metav1.ListMeta{ResourceVersion: "0"}}
 
   if len(pods) == 0 {
     foundPods, err = clientset.CoreV1().Pods(ns).List(metav1.ListOptions{})
-
-    podCount := len(foundPods.Items)
-    fmt.Printf("foundPods.Items length is %d\n", podCount)
   } else {
     for index, pod := range pods {
       fmt.Printf("Getting pod %s from index %d\n", pod, index)
-      // Examples for error handling:
-      // - Use helper functions like e.g. kubeErrors.IsNotFound()
-      // - And/or cast to StatusError and use its properties like e.g. ErrStatus.Message
+
       foundPod, err := clientset.CoreV1().Pods(ns).Get(pod, metav1.GetOptions{})
+
       if kubeErrors.IsNotFound(err) {
         errStr = fmt.Sprintf("Pod %s in namespace %s not found\n", pod, conf.Namespace)
       } else if statusError, isStatus := err.(*kubeErrors.StatusError); isStatus {
@@ -96,17 +95,11 @@ func GetPods(ns string, pods []string) (foundPods *corev1.PodList, err error) {
       } else if err != nil {
         panic(err.Error())
       } else {
-        //errStr = fmt.Sprintf("Found pod %s in namespace %s\n", pods, conf.Namespace)
-
         foundPods.Items = append(foundPods.Items, *foundPod)
-
-        // Add pod to podList somehow
       }
     }
   }
 
-  // Need to be returning nill for kubeErr if no error is returned
-  var kubeErr error
   if errStr != "" {
     kubeErr = errors.New(errStr)
   }
