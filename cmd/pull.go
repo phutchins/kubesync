@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/cobra"
 	"os"
   "github.com/phutchins/kubesync/pkg/kube"
+  "encoding/json"
   appsv1 "k8s.io/api/apps/v1"
   //corev1 "k8s.io/api/core/v1"
 
@@ -54,11 +55,22 @@ var (
 )
 
 var All bool
+var Format string
+var Output string
+var Destination string
 var Namespace string
 
 func init() {
 	rootCmd.AddCommand(pullCmd)
   rootCmd.PersistentFlags().BoolVarP(&All, "all", "a", false, "Query all namespaces")
+  rootCmd.PersistentFlags().StringVarP(&Format, "format", "f", "json", "Set format of the output")
+  // Output is either file or stdout
+  rootCmd.PersistentFlags().StringVarP(&Output, "output", "o", "stdout", "Set destination for output")
+  // Output can be determined by the options given
+  // - if there is a ./ or a path we can assume output is to file and that location
+  // - if no output location given, output should be stdout
+  // File output destination
+  rootCmd.PersistentFlags().StringVarP(&Destination, "destination", "d", "./", "Set file location")
   rootCmd.PersistentFlags().StringVarP(&Namespace, "namespace", "n", "default", "The namespace to query")
 
   pullCmd.AddCommand(pullDeploymentCmd)
@@ -71,6 +83,14 @@ func cmdPull(cmd *cobra.Command, args []string) (err error) {
   fmt.Println("Will pull all resources...")
 
   return err
+}
+
+func checkArgsForPath(args []string) (path string) {
+  if len(args) > 0 {
+    path = args[0]
+  }
+
+  return path
 }
 
 func cmdPullDeployments(cmd *cobra.Command, args []string) (err error) {
@@ -92,6 +112,43 @@ func cmdPullDeployments(cmd *cobra.Command, args []string) (err error) {
   }
 
   kube.PrintDeployments(deploymentList)
+
+  filePath := checkArgsForPath(args)
+
+  if filePath != "" {
+    fmt.Println("filepath exists: ", filePath)
+  }
+
+  for _, deployment := range deploymentList.Items {
+    //err := json.NewEncoder(mDeployment).Encode(deployment)
+    mDeployment, _ := json.MarshalIndent(&deployment, "", "\t")
+
+    // Check to see if we want to display or save to disk
+
+    // If we display just print
+    fmt.Println("deployment: ", string(mDeployment))
+
+    err := writeToFile(filePath, mDeployment)
+    if err != nil {
+      fnt.Println("Error writing to file: %s", err)
+    }
+
+    // If we save to disk
+      // Convert each deployment object to json
+      // Determine where in the file structure this file should go
+      // Look for existing file and load if it exists
+        // If it exists load it
+          // Diff the pulled file and loaded file
+      // Save json to file
+  }
+
+  return err
+}
+
+func writeToFile(filePath string, b []byte) (err) {
+  file, err := os.Create(filePath)
+  file.Write(b)
+  defer file.Close()
 
   return err
 }
