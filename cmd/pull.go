@@ -5,7 +5,10 @@ import (
 	"github.com/spf13/cobra"
 	"os"
   "github.com/phutchins/kubesync/pkg/kube"
+  "github.com/phutchins/kubesync/pkg/config"
   "encoding/json"
+  //"strings"
+  "bytes"
   appsv1 "k8s.io/api/apps/v1"
   //corev1 "k8s.io/api/core/v1"
 
@@ -55,24 +58,26 @@ var (
 )
 
 var All bool
-var Format string
+var File bool
 var Output string
+var STDOUT bool
 var Destination string
 var Namespace string
 
 func init() {
 	rootCmd.AddCommand(pullCmd)
   rootCmd.PersistentFlags().BoolVarP(&All, "all", "a", false, "Query all namespaces")
-  rootCmd.PersistentFlags().StringVarP(&Format, "format", "f", "json", "Set format of the output")
-  // Output is either file or stdout
-  rootCmd.PersistentFlags().StringVarP(&Output, "output", "o", "stdout", "Set destination for output")
+
   // Instead of output and destination, if destination is set, output is to file, otherwise it is to stdout
+  rootCmd.PersistentFlags().BoolVarP(&File, "file", "f", false, "Write resources to file")
+  rootCmd.PersistentFlags().BoolVarP(&STDOUT, "stdout", "s", false, "Write output to STDOUT")
+  rootCmd.PersistentFlags().StringVarP(&Output, "output", "o", "json", "Set format of outputh")
 
   // Output can be determined by the options given
   // - if there is a ./ or a path we can assume output is to file and that location
   // - if no output location given, output should be stdout
   // File output destination
-  rootCmd.PersistentFlags().StringVarP(&Destination, "destination", "d", "./", "Set file location")
+  rootCmd.PersistentFlags().StringVarP(&Destination, "destination", "d", "./", "Root file write location")
   rootCmd.PersistentFlags().StringVarP(&Namespace, "namespace", "n", "default", "The namespace to query")
 
   pullCmd.AddCommand(pullDeploymentCmd)
@@ -87,16 +92,14 @@ func cmdPull(cmd *cobra.Command, args []string) (err error) {
   return err
 }
 
-func checkArgsForPath(args []string) (path string) {
-  if len(args) > 1 {
-    path = args[1]
-  }
-
-  return path
+func JSONEncodeResource(resource appsv1.Deployment) (encodedResource []byte) {
+  encodedResource, _ = json.MarshalIndent(&resource, "", "\t")
+  return encodedResource
 }
 
 func cmdPullDeployments(cmd *cobra.Command, args []string) (err error) {
   var namespaceString string
+  conf := config.GetConf()
 
   if All == true {
     namespaceString = ""
@@ -119,31 +122,41 @@ func cmdPullDeployments(cmd *cobra.Command, args []string) (err error) {
     return err
   }
 
-  kube.PrintDeployments(deploymentList)
+  for index, deployment := range deploymentList.Items {
+    var jsonDeployment []byte
 
-  filePath := checkArgsForPath(args)
-
-  for _, deployment := range deploymentList.Items {
-    //err := json.NewEncoder(mDeployment).Encode(deployment)
-    mDeployment, _ := json.MarshalIndent(&deployment, "", "\t")
-
-    // Check to see if we want to display or save to disk
-
-    // If we display just print
-    fmt.Println("deployment: ", string(mDeployment))
-
-    if Output != "stdout" {
-      fmt.Println("Got destination arg")
+    if Output == "json" {
+      jsonDeployment = JSONEncodeResource(deployment)
     }
 
-    if filePath != "" {
-      fmt.Println("filepath exists: ", filePath)
-      err := writeToFile(filePath, mDeployment)
+    // Check to see if we want to display or save to disk
+    if File == true {
+      // Get the root path
+      // Could use strings.Builder here instead
+      var destFilePathBytes bytes.Buffer
+      // TODO: If Desetination is set, assign it instead of conf.rootPath
+      destFilePathBytes.WriteString(conf.RootPath)
+
+      // If writing to namespaced directories, add subdir
+      destFilePathBytes.WriteString(Namespace)
+
+      // Check to make sure the directory exists and write it if it doesnt
+      fmt.Println("test: ", deploymentList.Items[index].Name)
+
+      // Add file name to filePath
+      destFilePathBytes.WriteString("tmp")
+
+      destFilePathString := destFilePathBytes.String()
+      // Write file to disk
+      err := writeToFile(destFilePathString, jsonDeployment)
       if err != nil {
         fmt.Println("Error writing to file: %s", err)
       }
+    } else if STDOUT == true {
+      fmt.Println("deployment: ", string(jsonDeployment))
+    } else {
+      kube.PrintDeployments(deploymentList)
     }
-
 
     // If we save to disk
       // Convert each deployment object to json

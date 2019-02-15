@@ -10,6 +10,7 @@ import (
 type conf struct {
   CurrentContext string
   Namespace string
+  RootPath string
 }
 
 func main() {
@@ -54,6 +55,9 @@ func InitConfig () {
 }
 
 func GetConf() conf {
-  return conf{CurrentContext: viper.Get("current-context").(string), Namespace: viper.Get("namespace").(string)}
+  return conf{
+    CurrentContext: viper.Get("current-context").(string),
+    Namespace: viper.Get("namespace").(string),
+    RootPath: viper.Get("rootPath").(string)}
 }
 

@@ -38,6 +38,10 @@ build: ## Build binaries
 	mkdir -p builds
 	go build -o builds/kubesync .
 
+.PHONY: install
+install: ## Install binaries
+	cp ./builds/kubesync /usr/local/bin/kubesync
+
 .PHONY: build-label
 build-label: ## Build binaries
 	mkdir -p builds

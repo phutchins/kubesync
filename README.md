@@ -182,3 +182,6 @@ Separate what we're doing by what we're chainging in the resource?
 * Display help when no args are passed
 * Display help when no options are passed for a sub command
 * Create utils package and move `check for no args and display help` method to it`
+* Create method to pull config values that are overridden by command line params if they were given, otherwise use values in config file, or default if that exists
+* How to deserialize yaml from file: https://stackoverflow.com/questions/47116811/client-go-parse-kubernetes-json-files-to-k8s-structures
+* go client examples: https://github.com/kubernetes/client-go/blob/master/examples/create-update-delete-deployment/main.go
