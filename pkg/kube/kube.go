@@ -49,15 +49,12 @@ func ListNamespaces() (*corev1.NamespaceList) {
   return namespaceList
 }
 
-func ListDeployments(namespace string, deployments []string) (appsv1.DeploymentList) {
+func ListDeployments(namespace string, deployments []string) (error, appsv1.DeploymentList) {
   deploymentsClient := clientset.AppsV1().Deployments(namespace)
 
-  deploymentList, getErr := deploymentsClient.List(metav1.ListOptions{})
-  if getErr != nil {
-    panic(fmt.Sprintf("Failed to get latest version of Deployment: %s", getErr))
-  }
+  deploymentList, err := deploymentsClient.List(metav1.ListOptions{})
 
-  return *deploymentList
+  return err, *deploymentList
 }
 
 func GetPods(ns string, pods []string) (foundPods *corev1.PodList, err error) {
