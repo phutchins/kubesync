@@ -57,7 +57,6 @@ var (
   }
 )
 
-var All bool
 var File bool
 var Output string
 var STDOUT bool
@@ -66,7 +65,6 @@ var Namespace string
 
 func init() {
 	rootCmd.AddCommand(pullCmd)
-  rootCmd.PersistentFlags().BoolVarP(&All, "all", "a", false, "Query all namespaces")
 
   // Instead of output and destination, if destination is set, output is to file, otherwise it is to stdout
   rootCmd.PersistentFlags().BoolVarP(&File, "file", "f", false, "Write resources to file")
@@ -99,9 +97,10 @@ func JSONEncodeResource(resource appsv1.Deployment) (encodedResource []byte) {
 
 func cmdPullDeployments(cmd *cobra.Command, args []string) (err error) {
   var namespaceString string
+
   conf := config.GetConf()
 
-  if All == true {
+  if AllNamespaces == true {
     namespaceString = ""
   } else {
     namespaceString = Namespace
@@ -124,9 +123,17 @@ func cmdPullDeployments(cmd *cobra.Command, args []string) (err error) {
 
   for index, deployment := range deploymentList.Items {
     var jsonDeployment []byte
+    var fileExtension string
+    deploymentNamespace := deploymentList.Items[index].Namespace
+    deploymentName := deploymentList.Items[index].Name
 
     if Output == "json" {
       jsonDeployment = JSONEncodeResource(deployment)
+      fileExtension = ".json"
+    }
+
+    if Output == "yaml" {
+      // How to do one or the other?
     }
 
     // Check to see if we want to display or save to disk
@@ -138,15 +145,29 @@ func cmdPullDeployments(cmd *cobra.Command, args []string) (err error) {
       destFilePathBytes.WriteString(conf.RootPath)
 
       // If writing to namespaced directories, add subdir
-      destFilePathBytes.WriteString(Namespace)
+      destFilePathBytes.WriteString("/")
+      destFilePathBytes.WriteString(deploymentNamespace)
+      destDir := destFilePathBytes.String()
 
       // Check to make sure the directory exists and write it if it doesnt
-      fmt.Println("test: ", deploymentList.Items[index].Name)
 
-      // Add file name to filePath
-      destFilePathBytes.WriteString("tmp")
+      fmt.Println("Deployment Namespace: ", deploymentNamespace)
+
+      var dirCreateMode os.FileMode
+      dirCreateMode = 0755
+			if _, err := os.Stat(destDir); os.IsNotExist(err) {
+					os.Mkdir(destDir, dirCreateMode)
+			}
+
+      // Add file name and extension to filePath
+      destFilePathBytes.WriteString("/")
+      destFilePathBytes.WriteString(deploymentName)
+      destFilePathBytes.WriteString(fileExtension)
 
       destFilePathString := destFilePathBytes.String()
+
+      fmt.Println("Saving deployment %s to %s", deploymentName, destFilePathString)
+
       // Write file to disk
       err := writeToFile(destFilePathString, jsonDeployment)
       if err != nil {
@@ -182,7 +203,7 @@ func writeToFile(filePath string, b []byte) (err error) {
 func cmdPullPods(cmd *cobra.Command, args []string) (err error) {
   var namespaceString string
 
-  if All == true {
+  if AllNamespaces == true {
     namespaceString = ""
   } else {
     namespaceString = Namespace

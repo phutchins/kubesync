@@ -3,6 +3,7 @@ package cmd
 import (
   "fmt"
   "github.com/spf13/cobra"
+  "github.com/phutchins/kubesync/pkg/util"
 )
 
 var (
@@ -18,7 +19,14 @@ func init() {
 }
 
 func cmdPush(cmd *cobra.Command, args []string) (err error) {
-  fmt.Printf("Got subcmd %v", cmd)
+  pushNames := args
+
+  for _, pushName := range pushNames {
+    fmt.Printf("Pushing %v\n", pushName)
+
+    obj := util.LoadJSONFile(pushName)
+    util.ImportResourceObj(obj)
+  }
 
   return
 }

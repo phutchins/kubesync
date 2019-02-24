@@ -1,4 +1,7 @@
-# kubesync
+# kubeutils
+This repo will be transitioing to a collection of individual tools for Kubernetes.
+
+## kubesync
 Kubernetes bi-directional sync utility providing the following
 * Convenience around selecting contexts and namespaces
 * Extra layers of protection against pushing the wrong thing to an environment via diffs and confirmation
@@ -8,7 +11,14 @@ Kubernetes bi-directional sync utility providing the following
 * Promotion of updated settings from one context/namespace to another (i.e. staging to production)
 * A daemon service which monitors local and remote keeping one in sync with the other or both
 
-# Example Usage
+## kubeuser
+Assists in creating and managing Kubernetes users
+
+## kubeconf
+Manages your kubernetes client configuration file
+
+# kubesync
+## Example Usage
 I want to create a deployment, test it out in staging, then move it to production. It is a new one.
 ```
 $ vi myDeploy.yaml
@@ -22,8 +32,8 @@ $ echo "but wait, someone found a bug!"
 $ kubesync revert deployment myDeployment prod/prod
 ```
 
-# Usage:
-## Sub Commands
+## Usage:
+### Sub Commands
 * configure                  - Configure server settings and defaults writing them to file (can set where promote goes from and to?)
 * env                        - Prompt the user for which context
 * pull                       - Pull a resource form Kubernetes to local file
@@ -33,14 +43,14 @@ $ kubesync revert deployment myDeployment prod/prod
 * revert                     - Fall back to the last thing that was deployed
 * daemon                     - Run as a daemon (logs to to std out, potentially give -b option for built in background operation)
 
-## Global Options
+### Global Options
 * -f --force - Do not ask to confirm or compare diffs
 * -o --output - Name of file to be written locally (should use default extension if none given)
 * -c --context - Kubernetes context
 * -n --namespace - Kubernetes namespace to interact with (uses currently configured options if not specified)
 
-## Command Details
-### CONFIGURE
+### Command Details
+#### CONFIGURE
   * if config already exists
     * Ask if the user wants to nuke the config and reconfigure (or maybe make them move it/remove it before it will do anything
     * Tell them to individually set the items
@@ -48,37 +58,44 @@ $ kubesync revert deployment myDeployment prod/prod
     * Prompt for each setting
     * Prompt where to write config and the name (default ~/.kubesync)
 
-### ENV
-#### Sub Commands
+#### ENV
+##### Sub Commands
   * (empty) - Returns current config overview
   * get
   * set
 
 This command should potentially also help manage environment settings when used outside of kubesync (i.e. you run kubesync env [context] [namespace] then run kubectl get pods, you would be using the context and namespace set by kubesync)
 
-#### Params
+##### Params
   * context
   * namespace
 
-#### Examples
+##### Examples
 * env context [context name] - Accept a new setting for context (non interactive)
 * env namespace [namespace]  - Accept a new setting for namespace (non interactive)
 
-### PULL
+#### PULL
 $ kubesync pull [resource type] [resource name] [ -o myresource.yaml ]
 
 $ kubesync pull
 $ kubesync pull deployments
 $ kubesync pull services
 
-### PUSH
+#### PUSH
 Update remote with local version
 ```
-$ kubesync push [ deployment.yaml | deployment | MyDeploymentName ]
+$ kubesync push deployment [ deployment.yaml | deployment | MyDeploymentName ]
 ```
 * Straight forward in the case of deployment.yaml
 * For `deployment` it will guess at the extension and fail if there are more than one file with the same name but different extensions
 * For `MyDeploymentName` it should load all of the resources in the current directory and determine which one has this name
+
+Push all associated resources for a certain thing
+```
+$ kubesync push [ name ]
+```
+* For `name` we want to push all resources associated with `name`
+  * Could use tags or filename patern?
 
 Push everything recurisvely starting in $PWD
 ```
@@ -90,32 +107,62 @@ Push all deployment type resources recursively
 $ kubesync push deployments
 ```
 
-### DEPLOY
+#### DEPLOY
 
-### PROMOTE
+#### PROMOTE
 Feature Ideas
 * Contextually determine what resource you're wanting to promote by $CWD
 * Configure the from and to through kubesync configure
 
-### REVERT
+#### REVERT
 
-### DAEMON
+#### DAEMON
 
-# Configuration
+## Configuration
 * Config File (default ~/.kubesync/config)
 * File format (default yaml)
 * Kubernetes config (default ~/.kube/config)
 * Root of local config path (default $PWD) (unless can be detected by familiar directory structure)
 
-# Naming & Directory Structure
+## Naming & Directory Structure
 * File Naming
 * Directory Structure
 
-# Roadmap
-## V1
-- [ ] Pull a resource from Kube and save to file
+## Roadmap
+### V1
+- [x] Pull a deployment from Kube and save to file
+  - [x] Retrieve deployment from Kube
+  - [x] Convert Kube deployment resource to JSON
+  - [x] Save deployment to file (JSON)
+- [x] Pull deployments recursively (or multiple deployments, all)
+  - [x] Save all deployments from namespace to file
+  - [x] Save deployments in namespaced directory structure
+    - [x] all from specific namespace
+    - [x] all from all namespaces
+- [ ] Load deployment from file (start with diff path)
+  - [ ] Use directory structure to find file to be loaded (command line specify ns, resource type, and resource name)
+  - [ ] Load deployment from file (JSON)
+- [ ] Diff deployment pulled from kube prior to updating local
+  - [ ] loaded from file (JSON) against resource in Kube
+  - [ ] present use with options
+    - [ ] abort
+    - [ ] overwrite
+    - [ ] update remote instead (implemented later)
+- [ ] Push a deployment loaded from file to Kube
+- [ ] Diff deployment pushed from local to Kube prior to updating resource
+  - [ ] pulled from Kube against local file (JSON)
+- [ ] Add ability to interact with all other types of resources
+  - [ ] Pods
+  - [ ] ...
+  - [ ] Custom Resources
+
+### Bugs
+- [ ] --help does not work correctly at root of command
+
+### V2
+- [ ] Add sanatize options (for pull and push?)
   - [ ] Sanatize file removing unneeded elements
-  - [ ] Sort (optional) for consistent/predictable files
+- [ ] Add diff pull protection flow
   - [ ] If no file exists
     - [ ] Save it using default format
   - [ ] If file exists
@@ -127,10 +174,8 @@ Feature Ideas
       - [ ] Update local file
       - [ ] Bail
       - [ ] Selectively update local file
-- [ ] Pull resources recursively (or multiple resources, all)
-- [ ] Push a resource to Kube
+- [ ] Add diff push protection flow
   - [ ] Sanatize file removing unneeded elements
-  - [ ] Sort resource
   - [ ] Pull remote version
   - [ ] If it doesn't exist
     - [ ] Just push it
@@ -144,14 +189,14 @@ Feature Ideas
       - [ ] Bail
       - [ ] Selectively update remote resource
       - [ ] Aloow to sync remote to local for select elements?
-
-## V2
+- [ ] Sort (optional) for consistent/predictable files
+- [ ] Add input/output for YAML
 - [ ] Add daemon functionality
 - [ ] Enable git syncing up/down
 
-# Notes
+## Notes
 
-## Feature Brain Dump
+### Feature Brain Dump
 KubeSync is a tool which...
 * Syncs from Kubernetes manifest files on disk to Kubernetes
 * Syncs from Kubernetes to manifest file[s] on disk
@@ -169,19 +214,21 @@ KubeSync is a tool which...
 * Keep track of the last thing that changed for each resource and allow easy quick revert
 * Allow promoting an image or settings from one cluster or context to another
 
-## Sub Command Thoughts
+### Sub Command Thoughts
 Separate what we're doing by what we're chainging in the resource?
 * Deploy - Would only change the image
 * Env - Would only change environment variables
 * Configure - Would change other configuration?
 * Scale - Would scale the deployment up or down
 
-## TODO
+### TODO
 * Make viper read env variables to override config values
   * https://scene-si.org/2017/04/20/managing-configuration-with-viper/
 * Display help when no args are passed
 * Display help when no options are passed for a sub command
+* Fix --help not working for root command
 * Create utils package and move `check for no args and display help` method to it`
 * Create method to pull config values that are overridden by command line params if they were given, otherwise use values in config file, or default if that exists
+* When pulling all resources, pulling pods should be additional?
 * How to deserialize yaml from file: https://stackoverflow.com/questions/47116811/client-go-parse-kubernetes-json-files-to-k8s-structures
 * go client examples: https://github.com/kubernetes/client-go/blob/master/examples/create-update-delete-deployment/main.go

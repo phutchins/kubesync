@@ -23,9 +23,11 @@ var rootCmd = &cobra.Command{
 }
 
 var cfgFile string
+var AllNamespaces bool
 
 func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.kubesync)")
+  rootCmd.PersistentFlags().BoolVarP(&AllNamespaces, "all-namespaces", "a", false, "Query all namespaces")
   // Should be passing config file name override flag here
 	cobra.OnInitialize(config.InitConfig)
   kube.LoadKubeConfig()
