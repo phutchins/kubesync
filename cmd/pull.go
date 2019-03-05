@@ -10,6 +10,7 @@ import (
   //"strings"
   "bytes"
   appsv1 "k8s.io/api/apps/v1"
+  //"k8s.io/api/extensions/v1beta1"
   //corev1 "k8s.io/api/core/v1"
 
   // Use this for decoding yaml and jason files
@@ -91,7 +92,11 @@ func cmdPull(cmd *cobra.Command, args []string) (err error) {
 }
 
 func JSONEncodeResource(resource appsv1.Deployment) (encodedResource []byte) {
-  encodedResource, _ = json.MarshalIndent(&resource, "", "\t")
+  encodedResource, err := json.MarshalIndent(&resource, "", "\t")
+  if err != nil {
+    fmt.Println("Err: ", err)
+  }
+
   return encodedResource
 }
 
@@ -127,6 +132,10 @@ func cmdPullDeployments(cmd *cobra.Command, args []string) (err error) {
     deploymentNamespace := deploymentList.Items[index].Namespace
     deploymentName := deploymentList.Items[index].Name
 
+    // Set missing items prior to write
+    deployment.Kind = "Deployment"
+    deployment.APIVersion = "extensions/v1beta1"
+
     if Output == "json" {
       jsonDeployment = JSONEncodeResource(deployment)
       fileExtension = ".json"
@@ -141,13 +150,22 @@ func cmdPullDeployments(cmd *cobra.Command, args []string) (err error) {
       // Get the root path
       // Could use strings.Builder here instead
       var destFilePathBytes bytes.Buffer
+      var destDir string
       // TODO: If Desetination is set, assign it instead of conf.rootPath
-      destFilePathBytes.WriteString(conf.RootPath)
 
-      // If writing to namespaced directories, add subdir
-      destFilePathBytes.WriteString("/")
-      destFilePathBytes.WriteString(deploymentNamespace)
-      destDir := destFilePathBytes.String()
+      filePath := conf.RootPath
+
+      if &Destination != nil {
+        fmt.Println("NOT DEFAULT FILE PATH")
+        filePath = Destination
+      } else {
+        // If writing to namespaced directories, add subdir
+        destFilePathBytes.WriteString("/")
+        destFilePathBytes.WriteString(deploymentNamespace)
+        destDir = destFilePathBytes.String()
+      }
+
+      destFilePathBytes.WriteString(filePath)
 
       // Check to make sure the directory exists and write it if it doesnt
 
@@ -166,7 +184,7 @@ func cmdPullDeployments(cmd *cobra.Command, args []string) (err error) {
 
       destFilePathString := destFilePathBytes.String()
 
-      fmt.Println("Saving deployment %s to %s", deploymentName, destFilePathString)
+      fmt.Printf("Saving deployment %s to %s\n", deploymentName, destFilePathString)
 
       // Write file to disk
       err := writeToFile(destFilePathString, jsonDeployment)
