@@ -7,6 +7,8 @@ import (
   "k8s.io/api/extensions/v1beta1"
   "k8s.io/client-go/kubernetes/scheme"
   "k8s.io/apimachinery/pkg/runtime"
+  "encoding/json"
+  appsv1 "k8s.io/api/apps/v1"
 )
 
 func GetHomeDir() string {
@@ -39,19 +41,42 @@ func LoadJSONFile(filePath string) (obj runtime.Object) {
   return obj
 }
 
-func ImportResourceObj(obj runtime.Object) () {
+func ImportResourceObj(obj runtime.Object) (o interface{}) {
   switch o := obj.(type) {
   case *v1beta1.Deployment:
-    //deployment := obj.(*v1beta1.Deployment)
-    fmt.Printf("7777 Type: Deployment Name: %s\n\n", o)
+    fmt.Printf("Type: Deployment Name: %s\n\n", o.ObjectMeta.Name)
+    //resource = appsv1.DeploymentSpec{o}
   default:
-    fmt.Printf("8888 Unknown type\n\n")
+    fmt.Printf("Unknown type\n")
   }
 
   //var spec v1beta1.Deployment
   //err = json.Unmarshal(jsonFileBytes, &spec)
 
   //fmt.Printf("%#v\n", spec)
+  return o
+}
+
+func JSONEncodeResource(resource appsv1.Deployment) (encodedResource []byte) {
+  encodedResource, err := json.MarshalIndent(&resource, "", "\t")
+  if err != nil {
+    fmt.Println("Err: ", err)
+  }
+
+  return encodedResource
+}
+
+func EncodeResource(encoding string, resource appsv1.Deployment) (jsonResource []byte, fileExtension string) {
+  if encoding == "json" {
+    jsonResource = JSONEncodeResource(resource)
+    fileExtension = ".json"
+  }
+
+  if encoding == "yaml" {
+    // How to do one or the other?
+  }
+
+  return jsonResource, fileExtension
 }
 
 /*

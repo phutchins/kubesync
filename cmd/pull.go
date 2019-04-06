@@ -6,7 +6,7 @@ import (
 	"os"
   "github.com/phutchins/kubesync/pkg/kube"
   "github.com/phutchins/kubesync/pkg/config"
-  "encoding/json"
+  "github.com/phutchins/kubesync/pkg/util"
   //"strings"
   "bytes"
   appsv1 "k8s.io/api/apps/v1"
@@ -58,25 +58,20 @@ var (
   }
 )
 
-var File bool
 var Output string
 var STDOUT bool
 var Destination string
+var Directories bool
 var Namespace string
 
 func init() {
 	rootCmd.AddCommand(pullCmd)
 
   // Instead of output and destination, if destination is set, output is to file, otherwise it is to stdout
-  rootCmd.PersistentFlags().BoolVarP(&File, "file", "f", false, "Write resources to file")
   rootCmd.PersistentFlags().BoolVarP(&STDOUT, "stdout", "s", false, "Write output to STDOUT")
   rootCmd.PersistentFlags().StringVarP(&Output, "output", "o", "json", "Set format of outputh")
-
-  // Output can be determined by the options given
-  // - if there is a ./ or a path we can assume output is to file and that location
-  // - if no output location given, output should be stdout
-  // File output destination
-  rootCmd.PersistentFlags().StringVarP(&Destination, "destination", "d", "./", "Root file write location")
+  rootCmd.PersistentFlags().BoolVarP(&Directories, "directories", "D", true, "Write pulled resources to namespace named directories")
+  rootCmd.PersistentFlags().StringVarP(&Destination, "destination", "d", "", "Root file write location")
   rootCmd.PersistentFlags().StringVarP(&Namespace, "namespace", "n", "default", "The namespace to query")
 
   pullCmd.AddCommand(pullDeploymentCmd)
@@ -86,18 +81,9 @@ func init() {
 }
 
 func cmdPull(cmd *cobra.Command, args []string) (err error) {
-  fmt.Println("Will pull all resources...")
+  fmt.Println("Will pull all resources... (COMING SOON)")
 
   return err
-}
-
-func JSONEncodeResource(resource appsv1.Deployment) (encodedResource []byte) {
-  encodedResource, err := json.MarshalIndent(&resource, "", "\t")
-  if err != nil {
-    fmt.Println("Err: ", err)
-  }
-
-  return encodedResource
 }
 
 func cmdPullDeployments(cmd *cobra.Command, args []string) (err error) {
@@ -136,46 +122,38 @@ func cmdPullDeployments(cmd *cobra.Command, args []string) (err error) {
     deployment.Kind = "Deployment"
     deployment.APIVersion = "extensions/v1beta1"
 
-    if Output == "json" {
-      jsonDeployment = JSONEncodeResource(deployment)
-      fileExtension = ".json"
-    }
-
-    if Output == "yaml" {
-      // How to do one or the other?
-    }
+    jsonDeployment, fileExtension = util.EncodeResource(Output, deployment)
 
     // Check to see if we want to display or save to disk
-    if File == true {
+    if &Destination != nil {
       // Get the root path
       // Could use strings.Builder here instead
       var destFilePathBytes bytes.Buffer
       var destDir string
-      // TODO: If Desetination is set, assign it instead of conf.rootPath
-
       filePath := conf.RootPath
 
-      if &Destination != nil {
-        fmt.Println("NOT DEFAULT FILE PATH")
+      if Destination != "" {
+        fmt.Println("NOT DEFAULT FILE PATH", &Destination)
         filePath = Destination
-      } else {
-        // If writing to namespaced directories, add subdir
-        destFilePathBytes.WriteString("/")
-        destFilePathBytes.WriteString(deploymentNamespace)
-        destDir = destFilePathBytes.String()
       }
 
       destFilePathBytes.WriteString(filePath)
 
-      // Check to make sure the directory exists and write it if it doesnt
+      if Directories == true {
+        // If writing to namespaced directories, add subdir
+        destFilePathBytes.WriteString("/")
+        destFilePathBytes.WriteString(deploymentNamespace)
+        destDir = destFilePathBytes.String()
+
+        // Create directory if it doesnt exist
+        var dirCreateMode os.FileMode
+        dirCreateMode = 0755
+        if _, err := os.Stat(destDir); os.IsNotExist(err) {
+            os.Mkdir(destDir, dirCreateMode)
+        }
+      }
 
       fmt.Println("Deployment Namespace: ", deploymentNamespace)
-
-      var dirCreateMode os.FileMode
-      dirCreateMode = 0755
-			if _, err := os.Stat(destDir); os.IsNotExist(err) {
-					os.Mkdir(destDir, dirCreateMode)
-			}
 
       // Add file name and extension to filePath
       destFilePathBytes.WriteString("/")
@@ -196,14 +174,6 @@ func cmdPullDeployments(cmd *cobra.Command, args []string) (err error) {
     } else {
       kube.PrintDeployments(deploymentList)
     }
-
-    // If we save to disk
-      // Convert each deployment object to json
-      // Determine where in the file structure this file should go
-      // Look for existing file and load if it exists
-        // If it exists load it
-          // Diff the pulled file and loaded file
-      // Save json to file
   }
 
   // return err
