@@ -41,11 +41,14 @@ func LoadJSONFile(filePath string) (obj runtime.Object) {
   return obj
 }
 
-func ImportResourceObj(obj runtime.Object) (o interface{}) {
+func ImportResourceObj(obj runtime.Object) interface{} {
+  var resource interface{}
+
   switch o := obj.(type) {
   case *v1beta1.Deployment:
     fmt.Printf("Type: Deployment Name: %s\n\n", o.ObjectMeta.Name)
-    //resource = appsv1.DeploymentSpec{o}
+    //resource := appsv1.DeploymentSpec{obj}
+    resource = obj.(*v1beta1.Deployment)
   default:
     fmt.Printf("Unknown type\n")
   }
@@ -54,7 +57,7 @@ func ImportResourceObj(obj runtime.Object) (o interface{}) {
   //err = json.Unmarshal(jsonFileBytes, &spec)
 
   //fmt.Printf("%#v\n", spec)
-  return o
+  return resource
 }
 
 func JSONEncodeResource(resource appsv1.Deployment) (encodedResource []byte) {
@@ -66,6 +69,8 @@ func JSONEncodeResource(resource appsv1.Deployment) (encodedResource []byte) {
   return encodedResource
 }
 
+// Using dynamic type struct return here
+// https://stackoverflow.com/questions/35657362/how-to-return-dynamic-type-struct-in-golang
 func EncodeResource(encoding string, resource appsv1.Deployment) (jsonResource []byte, fileExtension string) {
   if encoding == "json" {
     jsonResource = JSONEncodeResource(resource)
