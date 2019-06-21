@@ -230,5 +230,9 @@ Separate what we're doing by what we're chainging in the resource?
 * Create utils package and move `check for no args and display help` method to it`
 * Create method to pull config values that are overridden by command line params if they were given, otherwise use values in config file, or default if that exists
 * When pulling all resources, pulling pods should be additional?
+
+### Links
 * How to deserialize yaml from file: https://stackoverflow.com/questions/47116811/client-go-parse-kubernetes-json-files-to-k8s-structures
 * go client examples: https://github.com/kubernetes/client-go/blob/master/examples/create-update-delete-deployment/main.go
+* Golang type assertion switch examples: https://yourbasic.org/golang/type-assertion-switch/
+* Info on building a custom resource definition and library for the API: https://medium.com/velotio-perspectives/extending-kubernetes-apis-with-custom-resource-definitions-crds-139c99ed3477
